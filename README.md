@@ -1,6 +1,6 @@
 # SharpCompress
 
-![SharpCompress](https://github.com/KrDev0/SharpCompress/blob/master/sharp1.PNG)
+![SharpCompress]([image](https://github.com/KrDev0/SharpCompress/assets/78448522/b762a1aa-19aa-426f-9a9f-a55f9cf78baa))
 
 ![SharpCompress](https://github.com/KrDev0/SharpCompress/blob/master/sharp2.PNG)
 
