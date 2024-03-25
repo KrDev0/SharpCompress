@@ -25,8 +25,9 @@ namespace _7ZipSharp
             txtFile.Text = arch;
             txtSave.Text = arch;
             txtSave.Text = txtSave.Text.Replace(Path.GetExtension(arch), "");
-            extract();
             lblSalidaFile.Text = "Directorio de salida: " + Path.GetFileName(txtSave.Text);
+
+            extraer(arch);
 
             // Inicializa el Timer
             timer = new Timer();
@@ -36,7 +37,59 @@ namespace _7ZipSharp
             // Inicia el cronómetro
             startTime = DateTime.Now;
             timer.Start();
+
         }
+
+        string contraseña;
+        private void extraer(string arch)
+        {
+            try
+            {
+                // Verificar si el archivo está protegido por contraseña
+                bool protegido = EsArchivoProtegido(arch);
+                
+                if (protegido == true)
+                {
+                    // Mostrar el formulario para ingresar la contraseña
+                    using (var formContraseña = new formContraseña())
+                    {
+                        if (formContraseña.ShowDialog() == DialogResult.OK)
+                        {
+                            contraseña = formContraseña.ContraseñaIngresada;
+                        }
+                        else
+                        {
+                            Application.Exit();
+                        }
+                    }
+                    extract(contraseña);
+                }
+                else
+                    extract(null);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}");
+            }
+        }
+
+        private bool EsArchivoProtegido(string archivo)
+        {
+            try
+            {
+                using (var extractor = new SevenZipExtractor(archivo))
+                {
+                    // Verificar si el archivo necesita contraseña
+                    return !extractor.Check();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al verificar la protección por contraseña: {ex.Message}");
+                return false;
+            }
+        }
+
         private void Timer_Tick(object sender, EventArgs e)
         {
             // Calcula el tiempo transcurrido
@@ -49,7 +102,7 @@ namespace _7ZipSharp
         {
             MessageBox.Show("SharpCompress\n\n" +
                 "Versión: " + Application.ProductVersion.ToString()+ "\n" +
-                "Compilación: 101023ago\n" +
+                "Compilación: 240324mar\n" +
                 "SevenZipSharp: 0.5.6.0\n" +
                 "7Z Plugin: 22.1.0.0\n" +
                 "7-Zip Shell Extension: 23.1.0.0\n" +
@@ -59,17 +112,22 @@ namespace _7ZipSharp
                 MessageBoxIcon.Information);
         }
 
-        private async void extract()
+        private async void extract(string pass)
         {
-            SevenZipExtractor.SetLibraryPath(Application.StartupPath + "\\7z.dll");
-            // Configura el evento para el progreso
-            var extractor = new SevenZipExtractor(txtFile.Text);
-
+            // Establece la ruta de la biblioteca DLL según el tipo de procesador
+            if (Environment.Is64BitProcess)
+            {
+                SevenZip.SevenZipCompressor.SetLibraryPath(Application.StartupPath + @"\7z64.dll");
+            }
+            else
+            {
+                SevenZip.SevenZipCompressor.SetLibraryPath(Application.StartupPath + @"\7z.dll");
+            }
             try
             {
                 await Task.Run(() =>
                 {
-                   using(SevenZipExtractor tmp = new SevenZipExtractor(txtFile.Text))
+                   using(SevenZipExtractor tmp = new SevenZipExtractor(txtFile.Text,pass))
                     {
                         tmp.Extracting += (s, eventArgs) =>
                         {

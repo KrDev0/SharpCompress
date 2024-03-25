@@ -10,7 +10,23 @@ namespace _7ZipSharp
 {
     internal class Compress
     {
-
+        public ZipEncryptionMethod getEncriptMethod(CompressF frm)
+        {
+            switch (frm.cmbEncrip.SelectedIndex)
+            {
+                case 0:
+                    return ZipEncryptionMethod.ZipCrypto;
+                case 1:
+                    return ZipEncryptionMethod.Aes128;
+                case 2:
+                    return ZipEncryptionMethod.Aes192;
+                case 3:
+                    return ZipEncryptionMethod.Aes256;
+                default:
+                    return ZipEncryptionMethod.ZipCrypto;
+            }
+        }
+    
         public void getMethod(CompressF frm)
         {
             switch (frm.cmbFormato.SelectedIndex)
