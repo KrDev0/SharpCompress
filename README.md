@@ -6,7 +6,7 @@ Pequeño y completo compresor y extractor de archivos desarrollado 100% en el le
 
 [Descargar Instalador]
 
-[Descargar](https://github.com/KrDev0/SharpCompress/releases/download/Release/SharpCompress1.1.msi)
+[Descargar](https://github.com/KrDev0/SharpCompress/releases/download/Release1.2/SharpCompress1.2.exe)
 
 1- Ejecute el archivo .msi para instalar el compresor
 
