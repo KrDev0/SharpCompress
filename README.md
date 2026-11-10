@@ -1,6 +1,6 @@
 # SharpCompress
 
-![SharpCompress](./pic/sharpFM.png)
+![SharpCompress](./pic/sharpcompress.png)
 
 SharpCompress es un administrador de archivos comprimidos para Windows. Permite explorar carpetas y archivos, crear y extraer archivos comprimidos, revisar su integridad e integrarse con el Explorador de Windows. La aplicación usa Windows Forms y requiere .NET Framework 4.7.2 o posterior.
 
@@ -9,8 +9,9 @@ SharpCompress es un administrador de archivos comprimidos para Windows. Permite 
 ## Funciones
 
 - **Explorador integrado:** navega por carpetas y archivos comprimidos, cambia entre detalles, lista, mosaicos e iconos, ordena elementos y consulta iconos del sistema.
+- **Interfaz:** tema claro con controles WinForms personalizados de estilo Material, incluyendo botones, campos de texto, pestañas y listas.
 - **Compresión:** crea archivos 7z, SCZ, ZIP, TAR y GZip. Acepta archivos, carpetas y selecciones mixtas conservando la estructura relativa. Incluye perfiles de velocidad/tamaño, niveles y métodos disponibles para cada formato, contraseñas y volúmenes cuando el formato lo permite.
-- **Formato SCZ:** extensión propia para un contenedor 7z estándar. Usa LZMA2 y admite las opciones de cifrado AES-256, encabezados cifrados, volúmenes y autoextracción de 7z. No añade un códec nuevo ni garantiza una relación de compresión superior.
+- **Formato propio SCZ:** extensión de SharpCompress para un contenedor 7z estándar. Elígela para reconocer y distinguir los archivos creados con SharpCompress, manteniendo compatibilidad con herramientas que leen 7z. Conserva LZMA2, AES-256, encabezados cifrados, volúmenes y autoextracción. La extensión no crea un códec nuevo ni comprime más que 7z por sí sola.
 - **Extracción:** extrae archivos completos o elementos seleccionados, conserva las carpetas internas, muestra el avance y permite cancelar. Para conflictos ofrece reemplazar, reemplazar todo, omitir o cancelar.
 - **Verificación y propiedades:** comprueba la integridad de archivos comprimidos; calcula SHA-1 o SHA-256 y muestra propiedades de elementos desde el explorador.
 - **Autoextractores:** crea ejecutables `.exe` basados en 7z y permite definir título, carpeta de destino, mensaje, modo visible/silencioso, programa posterior e icono `.ico` personalizado.
