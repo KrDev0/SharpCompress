@@ -1,0 +1,49 @@
+# Estado del proyecto
+- La app WinForms (.NET Framework 4.7.2) usa `MainForm` y `Services/ArchiveService.cs`; SevenZipSharp crea/extrae y SharpCompress inspecciona entradas.
+- Se navega por carpetas internas, se admite extracción selectiva (incluidas carpetas vacías) y se pide contraseña para abrir encabezados cifrados; se reutiliza durante la sesión.
+- La compresión agrega carpetas explícitas, incluidas vacías; rechaza fuentes con symlinks/reparse points.
+- SevenZipSharp normaliza rutas de entradas, bloquea escapes del destino, reparse points y nombres de dispositivo de Windows.
+- Explorer conserva sus comandos; revisar setup, registro y artefactos locales antes de retirarlos.
+- Las pantallas viejas quedaron fuera del proyecto; `about.cs` se conserva fuera del `.csproj` por un búfer abierto en Visual Studio.
+## Decisiones y validación
+- Se mantiene .NET Framework 4.7.2 durante la modernización gradual de WinForms y el wrapper nativo.
+- Build Release passes; `sharpCompress.ico` se copia correctamente al output. Inno Setup 6 compiló `sharpSetup.iss`; `NuGet.Config` limita restore a nuget.org y evita fuentes locales personales sin cambiar la configuración global.
+- No se ejecutaron pruebas automatizadas ni manuales. No afirmar que las reglas de extracción están verificadas en runtime todavía.
+- Se revisó visualmente el diálogo de creación; se reemplazó el binding de combos que lanzaba Invalid SelectedIndex por listas explícitas.
+- Se corrigió ContextMenu para resolver `SharpCompress.exe` e icono junto a la utilidad, validar la ruta y reportar errores tras el trabajo en background; se eliminaron sleeps artificiales.
+- Release de la solución pasó tras el cambio de ContextMenu (26 advertencias NU1801 del feed inexistente, 0 errores); `git diff --check` limpio salvo avisos de fin de línea.
+- La creación de archivos ahora escribe a un temporal en la misma carpeta y reemplaza/mueve al destino solo al completar, conservando un archivo existente si la compresión falla.
+- Se recompiló Release y el instalador Inno Setup 6.7.3 tras ese cambio; compilan sin errores. La verificación de ejecución real sigue pendiente.
+- El diálogo de creación ahora normaliza la extensión según el formato y valida que el destino no sea una carpeta y que su directorio exista; se consolidó la actualización de formato, extensión y soporte de contraseña en un solo evento.
+- Release e instalador se recompilaron tras esta validación; sin errores, con las advertencias conocidas del feed NU1801. `git diff --check` sigue limpio salvo avisos LF/CRLF.
+- Se trazó el flujo de SevenZipExtractor: extracción completa y selectiva usan `ArchiveExtractCallback`, con `PreserveDirectoryStructure=true`; la validación de cada ruta se aplica en ambos modos.
+- El nombre temporal de compresión ahora es corto e independiente del nombre final para reducir fallos con rutas largas. Release vuelve a compilar sin errores.
+- Los comandos de Explorer dejaron de usar nombres genéricos Item0–Item13: ahora usan identificadores `SharpCompress.*`; los menús raíz también usan `SharpCompress`. El instalador limpia claves antiguas solo cuando verifica los marcadores del producto.
+- Se comprobó que hay 14 claves únicas y ninguna referencia de submenú sin clave. Inno Setup y Release compilaron tras el cambio.
+- Se alinearon AGENTS.md y README con el layout y la compilación Debug/Release reales; AGENTS ahora describe NUnit `[TestFixture]`/`[Test]` sin inventar umbrales. LICENSE.txt ya no contiene el placeholder, refleja `KrDev` y los años del AssemblyInfo.
+- Program/MainForm ahora conservan todas las rutas de entrada; el menú `Agregar al archivo` y los comandos de compresión aceptan selección múltiple usando `%*`/`MultiSelectModel=Player`. Carpetas seleccionadas (`%1`) y fondo de carpeta (`%V`) tienen comandos de apertura distintos.
+- Se quitó la opción GZIP del menú de carpetas porque GZIP soporta un solo archivo; GZIP para archivos se limita a una selección. README y AGENTS reflejan estas reglas. Static check: 14 IDs y 0 referencias colgantes.
+- La grilla principal ahora permite ordenar por nombre, tipo, tamaño numérico, fecha y ruta; los encabezados muestran dirección de orden y se restablece al cambiar de carpeta/archivo.
+- Release e instalador recompilados con ordenamiento; build correcto, con advertencias NU1801 conocidas. No se hicieron pruebas automatizadas.
+- El ejecutable principal ahora tiene manifiesto propio `asInvoker`, compatibilidad Windows 10 y `longPathAware`; App.config activa `PerMonitorV2` y soporte de rutas largas en .NET Framework. AssemblyDescription ya no está vacía.
+- App.config y manifiesto pasan parseo XML; Release e Inno Setup recompilados sin errores. La escala/rutas largas requieren revisión en ejecución y la política de rutas largas del sistema puede seguir siendo necesaria.
+- MainForm impide cerrar la ventana mientras una operación de archivo está activa para evitar callbacks de progreso sobre controles ya destruidos.
+- Release e instalador recompilados tras la protección de cierre; correcto, con NU1801 del feed local. No se ejecutaron pruebas.
+- La protección de cierre ahora solo cancela el cierre manual de ventana; no bloquea apagado de Windows ni cierres de proceso solicitados externamente. Recompilados Release e instalador.
+- La detección para arrastrar/doble clic ahora usa `ArchiveFactory.IsArchive` del SharpCompress local por contenido, en vez de una whitelist de extensiones incompleta; se amplió el filtro del selector y se mantiene Todos los archivos.
+- Release e instalador recompilados sin errores tras la detección por contenido; el warning NU1801 del feed local persiste.
+- El diálogo de conflicto de extracción ahora muestra la ruta completa en un campo seleccionable/desplazable y Enter elige Omitir por seguridad; Release e instalador compilados.
+- Pendiente instalar/ejecutar el setup, probar archivos reales (cifrados, conflictos y rutas hostiles) y validar Explorer en runtime.
+- El instalador Inno habilita modo de 64 bits en Windows x64 compatible para registrar comandos de Explorer en la vista nativa; Windows de 32 bits conserva modo 32. Release e ISCC 6.7.3 compilaron tras el cambio; solo persiste NU1801 por el feed externo inexistente.
+- La extracción ahora resuelve conflictos archivo/carpeta; «Omitir» retorna inmediatamente al flujo falso en el callback (antes continuaba hasta File.Create). El renombrado de una carpeta conserva el mapeo para sus descendientes; «Reemplazar» no aparece cuando el conflicto es una carpeta preexistente. Release e Inno Setup compilaron; aún falta verificación de runtime.
+- MainForm y sus tres diálogos ahora activan AutoScaleMode.Dpi para coincidir con PerMonitorV2 de App.config. Release e instalador ISCC 6.7.3 recompilados correctamente.
+- README y AGENTS aclaran que los `.reg` heredados en `7ZipSharp/reg/` tienen rutas fijas y no son la definición vigente; `sharpSetup.iss` es canónico. Archivos conservados intactos.
+- Cada archivo extraído ahora se escribe en un temporal junto al destino, se publica con Move/Replace solo tras OperationResult.Ok y se elimina el temporal al fallar. El Release y el instalador recompilaron correctamente; sigue pendiente la verificación runtime.
+- MainForm incorpora botón Cancelar para compresión/extracción. ArchiveService usa callbacks por entrada y lanza OperationCanceledException; la creación descarta su temporal y extracción descarta la entrada temporal activa. Release pasó; primer ISCC falló con error transitorio 110 y el reintento compiló correctamente.
+- SharpCompress se actualizó de 0.38.0 a 0.48.1 para resolver GHSA-6c8g-7p36-r338; el explorador usa `ArchiveFactory.OpenArchive`. Release compiló sin errores.
+- 7-Zip native x86/x64 DLLs updated from official 26.05 packages. App and installer now ship 7-Zip, SharpCompress, .NET, SevenZipSharp, and repository license notices.
+- Archive creation rejects missing inputs rather than silently omitting them; cancellation is checked during input validation and incremental tree scans. Release and Inno Setup rebuilt successfully.
+- La corrección de la publicación previa se prepara como 1.2.1: `AssemblyInfo.cs`, README y `sharpSetup.iss` están alineados; extracción rechaza reparse points en la ruta de destino.
+- MSBuild Release e Inno Setup 6.7.3 generaron el instalador 1.2.1 correctamente. La comprobación de instalación y Explorer en runtime sigue pendiente.
+- Explorer commands share ShellCommands.cs; extracted destinations open with quoted paths. The installer checks for .NET Framework 4.7.2+ and ships third-party notices; `MaterialControls` is built from its project reference.
+- Explorer archive associations share the SharpCompress cascade; installer upgrade removes legacy SharpCompressExtract roots. Material buttons respect configured Size when AutoSize=false; the app references the controls project directly to align Designer/runtime. Every custom-dialog action is a MaterialFlatButton with the shared hover/ripple animation; the primary action is yellow and secondary outlines have higher contrast. All app MessageBox.Show calls use designer-based Material dialogs; extraction conflicts include replace, replace all, skip, and cancel. Debug/Release builds pass.

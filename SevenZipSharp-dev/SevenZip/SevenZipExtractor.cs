@@ -176,7 +176,7 @@ namespace SevenZip
         /// </summary>
         /// <param name="archiveStream">The stream to read the archive from.
         /// Use SevenZipExtractor(string) to extract from disk, though it is not necessary.</param>
-        /// <param name="leaveOpen">Leaves the base stream open.</param>        
+        /// <param name="leaveOpen">Leaves the base stream open.</param>
         /// <param name="format">Manual archive format setup. You SHOULD NOT normally specify it this way.
         /// Instead, use SevenZipExtractor(Stream archiveStream), that constructor
         /// automatically detects the archive format.</param>
@@ -448,7 +448,7 @@ namespace SevenZip
 
         /// <summary>
         /// Opens the archive and throws exceptions or returns OperationResult.DataError if any error occurs.
-        /// </summary>       
+        /// </summary>
         /// <param name="archiveStream">The IInStream compliant class instance, that is, the input stream.</param>
         /// <param name="openCallback">The ArchiveOpenCallback instance.</param>
         /// <returns>OperationResult.Ok if Open() succeeds.</returns>
@@ -685,6 +685,7 @@ namespace SevenZip
             aec.FileExtractionFinished += FileExtractionFinishedEventProxy;
             aec.Extracting += ExtractingEventProxy;
             aec.FileExists += FileExistsEventProxy;
+            aec.FileExtractionFailed += FileExtractionFailedEventProxy;
         }
 
         /// <summary>
@@ -730,7 +731,7 @@ namespace SevenZip
             callback.FileExists -= FileExistsEventProxy;
         }
 
-        #endregion        
+        #endregion
 #endif
 
         /// <summary>
@@ -863,6 +864,11 @@ namespace SevenZip
         /// </summary>
         public event EventHandler<FileOverwriteEventArgs> FileExists;
 
+        /// <summary>
+        /// Occurs when an archive entry cannot be extracted. The extraction continues when possible.
+        /// </summary>
+        public event EventHandler<FileExtractionFailedEventArgs> FileExtractionFailed;
+
         #region Event proxies
 
         /// <summary>
@@ -903,6 +909,11 @@ namespace SevenZip
         private void FileExistsEventProxy(object sender, FileOverwriteEventArgs e)
         {
             OnEvent(FileExists, e, true);
+        }
+
+        private void FileExtractionFailedEventProxy(object sender, FileExtractionFailedEventArgs e)
+        {
+            OnEvent(FileExtractionFailed, e, false);
         }
 
         #endregion

@@ -2,21 +2,42 @@
 
 ![SharpCompress](./pic/sharpFM.png)
 
-Pequeño y completo compresor y extractor de archivos desarrollado 100% en el lenguaje de programación C#
+SharpCompress es un administrador de archivos comprimidos para Windows. Permite explorar carpetas y archivos, crear y extraer archivos comprimidos, revisar su integridad e integrarse con el Explorador de Windows. La aplicación usa Windows Forms y requiere .NET Framework 4.7.2 o posterior.
 
-[Descargar Instalador]
+[Descargar SharpCompress 1.2.1](https://github.com/KrDev0/SharpCompress/releases/download/v1.2.1/SharpCompress_Setup_1.2.1.exe) · [Ver publicaciones](https://github.com/KrDev0/SharpCompress/releases)
 
-[Descargar](https://github.com/KrDev0/SharpCompress/releases/download/Release/SharpCompress1.1.msi)
+## Funciones
 
-1- Ejecute el archivo .msi para instalar el compresor
+- **Explorador integrado:** navega por carpetas y archivos comprimidos, cambia entre detalles, lista, mosaicos e iconos, ordena elementos y consulta iconos del sistema.
+- **Compresión:** crea archivos 7z, SCZ, ZIP, TAR y GZip. Acepta archivos, carpetas y selecciones mixtas conservando la estructura relativa. Incluye perfiles de velocidad/tamaño, niveles y métodos disponibles para cada formato, contraseñas y volúmenes cuando el formato lo permite.
+- **Formato SCZ:** extensión propia para un contenedor 7z estándar. Usa LZMA2 y admite las opciones de cifrado AES-256, encabezados cifrados, volúmenes y autoextracción de 7z. No añade un códec nuevo ni garantiza una relación de compresión superior.
+- **Extracción:** extrae archivos completos o elementos seleccionados, conserva las carpetas internas, muestra el avance y permite cancelar. Para conflictos ofrece reemplazar, reemplazar todo, omitir o cancelar.
+- **Verificación y propiedades:** comprueba la integridad de archivos comprimidos; calcula SHA-1 o SHA-256 y muestra propiedades de elementos desde el explorador.
+- **Autoextractores:** crea ejecutables `.exe` basados en 7z y permite definir título, carpeta de destino, mensaje, modo visible/silencioso, programa posterior e icono `.ico` personalizado.
+- **Menú de Windows:** instala un menú en cascada SharpCompress para archivos, carpetas y selecciones múltiples. Incluye compresión, apertura y opciones de extracción coherentes con el elemento seleccionado.
+- **Aplicaciones predeterminadas:** el instalador permite seleccionar formatos para registrar SharpCompress; Windows solicita confirmar las asociaciones en su página de aplicaciones predeterminadas.
+- **Preferencias y diagnóstico:** guarda idioma, vista, perfil y carpetas recientes, política de conflictos e icono del menú contextual. Incluye interfaz clara en español e inglés, reparación de la integración de Explorer y registro de errores.
 
-Actualización 1.2
+El icono del programa es fijo; el icono del menú contextual y el de cada autoextractor pueden configurarse por separado. Las contraseñas no se guardan.
 
-Actualización de la interfaz y mejoras en la compresión
+## Instalación
 
-Se ha cambiado el icono de la aplicación y se han añadido nuevas referencias a bibliotecas en `7ZipSharp.csproj`. Se han implementado nuevas clases y métodos para mejorar la funcionalidad de compresión y extracción de archivos, incluyendo la adición de un `ListView` para gestionar archivos y un menú contextual para facilitar la interacción del usuario.
+Descarga y ejecuta `SharpCompress_Setup_1.2.1.exe`. El instalador configura la integración opcional con el Explorador y registra los formatos elegidos como candidatos para abrirse con SharpCompress. Windows requiere que el usuario confirme cada asociación predeterminada desde Configuración.
 
-Se han añadido múltiples archivos de registro para integrar la aplicación con el menú contextual de Windows, permitiendo a los usuarios comprimir y extraer archivos directamente desde el explorador. También se han actualizado los recursos de la interfaz de usuario, incluyendo nuevos iconos y gráficos, así como la implementación de una ventana "Acerca de" para mostrar información sobre la aplicación.
+## Compilación
 
-Además, se ha creado un nuevo proyecto de biblioteca `ContextMenu` y se han realizado cambios en `AssemblyInfo.cs` para reflejar la nueva versión del software.
+Desde Visual Studio Developer PowerShell en la raíz del repositorio:
 
+```powershell
+msbuild .\7ZipSharp\7ZipSharp.sln /restore /p:RestorePackagesConfig=true /p:RestoreConfigFile=NuGet.Config /p:Configuration=Release
+msbuild .\7ZipSharp\7ZipSharp.sln /p:Configuration=Debug
+msbuild .\7ZipSharp\7ZipSharp.sln /p:Configuration=Release
+dotnet test .\SevenZipSharp-dev\SevenZip.Tests\SevenZip.Tests.csproj --configuration Debug
+ISCC.exe .\7ZipSharp\7ZipSharp\setup\sharpSetup.iss
+```
+
+La solución incluye la aplicación WinForms, los controles visuales y la biblioteca SevenZipSharp. Las pruebas NUnit cubren la biblioteca. El instalador requiere Inno Setup 6. `7ZipSharp/7ZipSharp/setup/sharpSetup.iss` es la definición vigente de instalación y registro; los `.reg` heredados, si aparecen en una copia anterior, no deben importarse.
+
+## Licencias y reportes
+
+Consulta `LICENSE.txt` y `third-party-licenses/` antes de redistribuir componentes. Para reportar un error, incluye la operación y la entrada pertinente de `%LOCALAPPDATA%\KrDev\SharpCompress\Logs\errors.log`; nunca compartas contraseñas ni archivos privados.

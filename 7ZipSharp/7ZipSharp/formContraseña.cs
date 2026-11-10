@@ -16,7 +16,11 @@ namespace _7ZipSharp
         public formContraseña()
         {
             InitializeComponent();
-            txtContraseña.Select();
+            if (LicenseManager.UsageMode == LicenseUsageMode.Designtime) return;
+            Localization.Apply(this);
+            ProductUi.Apply(this);
+            if (LicenseManager.UsageMode != LicenseUsageMode.Designtime)
+                txtContraseña.Select();
         }
         public string ContraseñaIngresada;
         private void button1_Click(object sender, EventArgs e)

@@ -3,5 +3,21 @@
   <Profiles>
     <Profile Name="(Default)" />
   </Profiles>
-  <Settings />
+  <Settings>
+    <Setting Name="UiLanguage" Type="System.String" Scope="User"><Value Profile="(Default)">es</Value></Setting>
+    <Setting Name="LastOutputDirectory" Type="System.String" Scope="User"><Value Profile="(Default)" /></Setting>
+    <Setting Name="LastExtractDirectory" Type="System.String" Scope="User"><Value Profile="(Default)" /></Setting>
+    <Setting Name="LastArchiveFormat" Type="System.Int32" Scope="User"><Value Profile="(Default)">2</Value></Setting>
+    <Setting Name="CompressionProfile" Type="System.Int32" Scope="User"><Value Profile="(Default)">0</Value></Setting>
+    <Setting Name="ConflictPolicy" Type="System.Int32" Scope="User"><Value Profile="(Default)">0</Value></Setting>
+    <Setting Name="BrowserView" Type="System.Int32" Scope="User"><Value Profile="(Default)">0</Value></Setting>
+    <Setting Name="CreateSelfExtracting" Type="System.Boolean" Scope="User"><Value Profile="(Default)">False</Value></Setting>
+    <Setting Name="SfxTitle" Type="System.String" Scope="User"><Value Profile="(Default)">SharpCompress - Archivo autoextraíble</Value></Setting>
+    <Setting Name="SfxInstallPath" Type="System.String" Scope="User"><Value Profile="(Default)">.</Value></Setting>
+    <Setting Name="SfxBeginPrompt" Type="System.String" Scope="User"><Value Profile="(Default)" /></Setting>
+    <Setting Name="SfxRunProgram" Type="System.String" Scope="User"><Value Profile="(Default)" /></Setting>
+    <Setting Name="SfxShowProgress" Type="System.Boolean" Scope="User"><Value Profile="(Default)">True</Value></Setting>
+    <Setting Name="SfxIconPath" Type="System.String" Scope="User"><Value Profile="(Default)" /></Setting>
+    <Setting Name="ApplicationIconPath" Type="System.String" Scope="User"><Value Profile="(Default)" /></Setting>
+  </Settings>
 </SettingsFile>

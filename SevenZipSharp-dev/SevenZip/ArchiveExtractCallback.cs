@@ -156,6 +156,17 @@ namespace SevenZip
         /// </summary>
         public event EventHandler<FileOverwriteEventArgs> FileExists;
 
+        /// <summary>
+        /// Occurs when an archive entry cannot be written or validated.
+        /// </summary>
+        public event EventHandler<FileExtractionFailedEventArgs> FileExtractionFailed;
+
+        private void ReportExtractionFailure(string fileName, Exception exception)
+        {
+            FileExtractionFailed?.Invoke(this, new FileExtractionFailedEventArgs(fileName, exception.Message));
+            AddException(exception);
+        }
+
         private void IntEventArgsHandler(object sender, IntEventArgs e)
         {
             // If _bytesCount is not set, we can't update the progress.
@@ -254,7 +265,7 @@ namespace SevenZip
                         try
                         {
                             fileName = Path.Combine(RemoveIllegalCharacters(_directory, true), RemoveIllegalCharacters(_directoryStructure ? entryName : Path.GetFileName(entryName)));
-                            
+
                             if (string.IsNullOrEmpty(fileName))
                             {
                                 throw new SevenZipArchiveException("Some archive name is null or empty.");
@@ -262,7 +273,7 @@ namespace SevenZip
                         }
                         catch (Exception e)
                         {
-                            AddException(e);
+                            ReportExtractionFailure(entryName, e);
                             outStream = _fakeStream;
 
                             return 0;
@@ -274,13 +285,13 @@ namespace SevenZip
                         {
                             _archive.GetProperty(index, ItemPropId.LastWriteTime, ref data);
                             var time = NativeMethods.SafeCast(data, DateTime.MinValue);
-                            
+
                             if (File.Exists(fileName))
                             {
                                 var fnea = new FileOverwriteEventArgs(fileName);
 
                                 FileExists?.Invoke(this, fnea);
-                                
+
                                 if (fnea.Cancel)
                                 {
                                     Canceled = true;
@@ -301,7 +312,7 @@ namespace SevenZip
                             var iea = new FileInfoEventArgs(_extractor.ArchiveFileData[(int) index], PercentDoneEventArgs.ProducePercentDone(_doneRate));
 
                             FileExtractionStarted?.Invoke(this, iea);
-                            
+
                             if (iea.Cancel)
                             {
                                 Canceled = true;
@@ -322,9 +333,10 @@ namespace SevenZip
                             }
                             catch (Exception e)
                             {
-                                AddException(e is FileNotFoundException
+                                Exception extractionError = e is FileNotFoundException
                                     ? new IOException($"The file \"{fileName}\" was not extracted due to the File.Create fail.")
-                                    : e);
+                                    : e;
+                                ReportExtractionFailure(fileName, extractionError);
 
                                 outStream = _fakeStream;
 
@@ -339,7 +351,7 @@ namespace SevenZip
                             _doneRate += 1.0f / _filesCount;
                             var iea = new FileInfoEventArgs(_extractor.ArchiveFileData[(int)index], PercentDoneEventArgs.ProducePercentDone(_doneRate));
                             FileExtractionStarted?.Invoke(this, iea);
-                            
+
                             if (iea.Cancel)
                             {
                                 Canceled = true;
@@ -360,7 +372,7 @@ namespace SevenZip
                                 }
                                 catch (Exception e)
                                 {
-                                    AddException(e);
+                                    ReportExtractionFailure(fileName, e);
                                 }
 
                                 outStream = _fakeStream;
@@ -397,62 +409,79 @@ namespace SevenZip
         /// <inheritdoc />
         public void SetOperationResult(OperationResult operationResult)
         {
+            CloseCurrentOutputStream();
             if (operationResult != OperationResult.Ok && ReportErrors)
             {
                 switch (operationResult)
                 {
                     case OperationResult.CrcError:
-                        AddException(new ExtractionFailedException("File is corrupted. Crc check has failed."));
+                        ReportExtractionFailure(GetCurrentEntryName(), new ExtractionFailedException("File is corrupted. CRC check failed."));
                         break;
                     case OperationResult.DataError:
-                        AddException(new ExtractionFailedException("File is corrupted. Data error has occured."));
+                        ReportExtractionFailure(GetCurrentEntryName(), new ExtractionFailedException("File is corrupted. Data error occurred."));
                         break;
                     case OperationResult.UnsupportedMethod:
-                        AddException(new ExtractionFailedException("Unsupported method error has occured."));
+                        ReportExtractionFailure(GetCurrentEntryName(), new ExtractionFailedException("Unsupported compression method."));
                         break;
                     case OperationResult.Unavailable:
-                        AddException(new ExtractionFailedException("File is unavailable."));
+                        ReportExtractionFailure(GetCurrentEntryName(), new ExtractionFailedException("File is unavailable."));
                         break;
                     case OperationResult.UnexpectedEnd:
-                        AddException(new ExtractionFailedException("Unexpected end of file."));
+                        ReportExtractionFailure(GetCurrentEntryName(), new ExtractionFailedException("Unexpected end of file."));
                         break;
-                    case OperationResult.DataAfterEnd: 
-                        AddException(new ExtractionFailedException("Data after end of archive."));
+                    case OperationResult.DataAfterEnd:
+                        ReportExtractionFailure(GetCurrentEntryName(), new ExtractionFailedException("Unexpected data after the end of the archive."));
                         break;
                     case OperationResult.IsNotArc:
-                        AddException(new ExtractionFailedException("File is not archive."));
+                        ReportExtractionFailure(GetCurrentEntryName(), new ExtractionFailedException("The item is not a valid archive."));
                         break;
                     case OperationResult.HeadersError:
-                        AddException(new ExtractionFailedException("Archive headers error."));
+                        ReportExtractionFailure(GetCurrentEntryName(), new ExtractionFailedException("Archive header error."));
                         break;
                     case OperationResult.WrongPassword:
-                        AddException(new ExtractionFailedException("Wrong password."));
+                        ReportExtractionFailure(GetCurrentEntryName(), new ExtractionFailedException("Incorrect password."));
                         break;
                     default:
-                        AddException(new ExtractionFailedException($"Unexpected operation result: {operationResult}"));
+                        ReportExtractionFailure(GetCurrentEntryName(), new ExtractionFailedException($"Unexpected operation result: {operationResult}"));
                         break;
                 }
             }
             else
             {
-                if (_fileStream != null && !_fileIndex.HasValue)
-                {
-                    try
-                    {
-                        _fileStream.BytesWritten -= IntEventArgsHandler;
-                        _fileStream.Dispose();
-                    }
-                    catch (ObjectDisposedException) { }
-                    _fileStream = null;
-                }
-
                 var iea = new FileInfoEventArgs(_extractor.ArchiveFileData[_currentIndex], PercentDoneEventArgs.ProducePercentDone(_doneRate));
                 FileExtractionFinished?.Invoke(this, iea);
-                
+
                 if (iea.Cancel)
                 {
                     Canceled = true;
                 }
+            }
+        }
+
+        private void CloseCurrentOutputStream()
+        {
+            if (_fileStream == null || _fileIndex.HasValue) return;
+            try
+            {
+                _fileStream.BytesWritten -= IntEventArgsHandler;
+                _fileStream.Dispose();
+            }
+            catch (ObjectDisposedException) { }
+            finally
+            {
+                _fileStream = null;
+            }
+        }
+
+        private string GetCurrentEntryName()
+        {
+            try
+            {
+                return _extractor.ArchiveFileData[_currentIndex].FileName;
+            }
+            catch
+            {
+                return string.Empty;
             }
         }
 

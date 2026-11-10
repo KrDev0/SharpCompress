@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -20,7 +20,20 @@ namespace _7ZipSharp
         public about()
         {
             InitializeComponent();
-           
+
+            if (LicenseManager.UsageMode == LicenseUsageMode.Designtime) return;
+
+            labelVersion.Text = "Versión: " + Application.ProductVersion;
+            label1.Text = "Aplicación para gestionar archivos comprimidos";
+            label2.Text = "Creado por KrDev";
+            label3.Text = "Formatos: 7z · SCZ · ZIP · TAR · GZip · SFX Windows";
+            label4.Text = "Motores: 7-Zip y SharpCompress";
+            label5.Text = "Copyright © 2023–2026 KrDev";
+            label6.Text = "Arquitectura: " + (Environment.Is64BitProcess ? "x64" : "x86");
+
+            Localization.Apply(this);
+            ProductUi.Apply(this);
+
             // Suponiendo que el PictureBox se llama picLogo
             picLogo.Click += PicLogo_Click;
 
@@ -67,7 +80,7 @@ namespace _7ZipSharp
 
         private void button1_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(Properties.Resources.LICENCE,"Términos de uso",MessageBoxButtons.OK,MessageBoxIcon.Information);
+            _7ZipSharp.Msg.AppMessage.Show(Properties.Resources.LICENCE,"Términos de uso",MessageBoxButtons.OK,MessageBoxIcon.Information);
         }
     }
 }
